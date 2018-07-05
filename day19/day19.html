@@ -1,0 +1,188 @@
+<html>
+
+    <head>
+        <title>Advent of Code - Day 19</title>
+        <style>
+            #input {
+                font-family: monospace;
+            }
+
+            .maze-piece {
+                font-family: monospace;
+                width: 9px;
+                display: inline-block;
+                line-height: 1;
+                /* transition: background-color 0.5s ease-out; */
+            }
+
+            .maze-row {
+                display: block;
+            }
+
+            #main {
+                font-family: monospace;
+
+            }
+        </style>
+        <script type="text/javascript">
+            const formatInput = (data) => data.split('\n').map(l => l.split(''));
+
+            var packet, mazeInput;
+
+            class Packet {
+                constructor(position) {
+                    this.position = position || [0, 0];
+                    this.end = false;
+                    this.direction = 'S';
+                    this.letters = '';
+                    this.stepCount = 0;
+                    this.dx = 1;
+                    this.dy = 0;
+                }
+            }
+            // https://stackoverflow.com/questions/123999/how-to-tell-if-a-dom-element-is-visible-in-the-current-viewport/7557433#7557433
+            function isElementInViewport(el) {
+
+                var rect = el.getBoundingClientRect();
+
+                return (
+                    rect.top >= 0 &&
+                    rect.left >= 0 &&
+                    rect.bottom <= (window.innerHeight || document.documentElement
+                        .clientHeight) && /*or $(window).height() */
+                    rect.right <= (window.innerWidth || document.documentElement
+                        .clientWidth) /*or $(window).width() */
+                );
+            }
+
+            const hightLightPosition = (packet) => {
+                const elem = document.getElementById('piece-' + packet.position[
+                    0] + '-' + packet.position[1]);
+                elem.style[
+                    'background-color'] = '#009688';
+
+                if (!isElementInViewport(elem)) {
+                    // let yScroll = 0;
+                    // if (document.body.scrollTop === 0) {
+                    //     yScroll = document.documentElement
+                    //         .clientHeight;
+                    // }
+                    // window.scroll(0, yScroll)
+                    elem.scrollIntoView()
+                }
+            }
+
+            const printSolution = (packet) => {
+                const elemSol1 = document.getElementById('sol1-output');
+                elemSol1.innerHTML = packet.letters;
+                const elemSol2 = document.getElementById('sol2-output');
+                elemSol2.innerHTML = packet.stepCount;
+            }
+            const fadePosition = (packet) => {
+                const elem = document.getElementById('piece-' + packet.position[
+                    0] + '-' + packet.position[1]);
+                elem.style[
+                    'transition'] = 'background-color 0.5s ease-out';
+                elem.style[
+                    'background-color'] = '#fff';
+                elem.style[
+                    'color'] = '#009688';
+            }
+            const compute = () => {
+                fadePosition(packet);
+                // while (!packet.end) {
+                packet = walkPath(mazeInput, packet);
+                // }
+
+                if (packet.end) {
+                    alert('Done! Answer is: ' + packet.letters);
+                    console.log(packet.letters);
+                    return;
+                }
+                requestAnimationFrame(compute);
+                hightLightPosition(packet);
+                printSolution(packet);
+                // window.setTimeout(compute, 0);
+            }
+
+            const walkPath = (maze, packet) => {
+                const currentPoint = packet.position;
+                let dx = packet.dx;
+                let dy = packet.dy;
+                let x = currentPoint[0];
+                let y = currentPoint[1];
+                let currentChar = maze[x][y];
+
+
+                if (currentChar.match(/[A-Z]/)) {
+                    packet.letters += currentChar;
+                } else if (currentChar === ' ') {
+                    packet.end = true;
+                } else if (currentChar === '+') {
+                    if (dx === 0) {
+                        dy = 0;
+                        if (maze[x + 1][y] == '|') {
+                            dx = 1;
+                        } else {
+                            dx = -1;
+                        }
+                    } else {
+                        dx = 0;
+                        if (maze[x][y + 1] == '-') {
+                            dy = 1;
+                        } else {
+                            dy = -1;
+                        }
+                    }
+                    packet.dx = dx;
+                    packet.dy = dy;
+                }
+                packet.stepCount++;
+                packet.position[0] += dx;
+                packet.position[1] += dy;
+                return packet;
+            }
+
+            function load() {
+                let input = document.getElementById('input');
+                mazeInput = formatInput(input.value);
+
+                let out = document.getElementById('main');
+                out.innerHTML =
+                    '<div style="width: 664px; text-align: center"><button type="button" onclick="compute()">Play!</button></div>';
+                out.innerHTML +=
+                    `<div id="solution-panel">
+                        <p><span>Solution Part 1:  </span><span id="sol1-output"></span></p>
+                    <p><span>Solution Part 2:  </span><span id="sol2-output"></span></p>
+                    </div>`
+                let mazeHtml = '<div id="#maze">'
+                for (let i = 0; i < mazeInput.length; i++) {
+                    mazeHtml += '<span class="maze-row">'
+                    for (let j = 0; j < mazeInput[i].length; j++) {
+                        mazeHtml +=
+                            `<span class="maze-piece" id="piece-${i}-${j}">${mazeInput[i][j]}</span>`
+                    }
+
+                    mazeHtml += '</span>'
+                }
+                mazeHtml += '</div>'
+                out.innerHTML += mazeHtml;
+
+                let startPoint = mazeInput[0].findIndex(c => c != ' ');
+                packet = new Packet([0, startPoint]);
+            }
+        </script>
+    </head>
+
+    <body>
+        <div id="main">
+            <p>Paste your input here:</p>
+            <textarea id="input" rows="42" cols="100"></textarea>
+            <br>
+            <button type="button" onclick="load()">Load!</button>
+        </div>
+        <div class="content">
+        </div>
+    </body>
+
+</html>

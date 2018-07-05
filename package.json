@@ -1,0 +1,20 @@
+{
+  "name": "aoc2017",
+  "version": "1.0.0",
+  "description": "Solution for Advent of Code 2017",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sambres/AoC2017.git"
+  },
+  "author": "Adrien SAMBRES",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sambres/AoC2017/issues"
+  },
+  "homepage": "https://github.com/sambres/AoC2017#readme"
+}
