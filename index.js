@@ -4,8 +4,9 @@ function app() {
 
 app();
 
-console.log(process.argv);
-
 if(process.argv.length >= 2) {
+    let number = parseInt(process.argv[2]);
     
+    const day = require(`./day${number}/AdventCalendar${number}.js`);
+   
 }

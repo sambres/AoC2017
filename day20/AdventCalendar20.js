@@ -40,8 +40,6 @@ const formatInput = data => data.split('\n').map(a => {
 	};
 })
 
-
-
 function distance(p1) {
 	return Math.abs(p1.p.x) + Math.abs(p1.p.y) + Math.abs(p1.p.z);
 }

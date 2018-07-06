@@ -45,7 +45,10 @@ const formatInput = data => data.split('\n').map(l => {
 	const r = l.split(' => ').map(l => l.trim())
 	r[0] = r[0].replace(/\//g, '');
 	return r;
-});
+}).reduce((aggr, current) => {
+	aggr[current[0]] = current[1];
+	return aggr;
+}, {});
 
 const splitArt = (art, split) => {
 	let parts = [];
@@ -101,7 +104,7 @@ const flipArray = array => {
 const findRule = (art, rules) => {
 	let rule;
 	let format = serializeArt(art);
-	rule = rules.find(r => r[0] === format);
+	rule = rules[format];
 	if (rule) {
 		return rule;
 	};
@@ -111,28 +114,30 @@ const findRule = (art, rules) => {
 	flip = flipArray(art);
 
 	format = serializeArt(flip);
-	rule = rules.find(r => r[0] === format);
+	rule = rules[format];
 	if (rule) {
 		format = serializeArt(art);
-		rules.push([format, rule[1]]);
+		rules[format] = rule;
+		// rules.push([format, rule[1]]);
 		return rule;
 	}
 	for (let i = 0; i < 3; i++) {
 		rotate = rotateArray(rotate);
 
 		format = serializeArt(rotate);
-		rule = rules.find(r => r[0] === format);
+		rule = rules[format];
 		if (rule) break;
 
 		flip = flipArray(rotate);
 
 		format = serializeArt(flip);
-		rule = rules.find(r => r[0] === format);
+		rule = rules[format];
 		if (rule) break;
 	}
 	format = serializeArt(art);
 
-	rules.push([format, rule[1]]);
+	rules[format] = rule;
+	// rules.push([format, rule[1]]);
 	if (DEBUG) console.log('RULE FOUND', serializeArt(art), rule);
 	return rule;
 };
@@ -206,23 +211,21 @@ const compute = rules => {
 		for (let j = 0; j < parts.length; j++) {
 			const part = parts[j];
 
-			const rule = findRuleMonitored(part, rules);
-			if (!rule) {
-				console.log('BIG PROBLEM, rule not found', serializeArt(part));
-				return art;
-			}
+			const ruleResult = findRuleMonitored(part, rules);
+			// if (!ruleResult) {
+			// 	console.log('BIG PROBLEM, rule not found', serializeArt(part));
+			// 	return art;
+			// }
 
-			parts[j] = formatArt(rule[1]);
+			parts[j] = formatArt(ruleResult);
 		}
 		art = mergeArtsMonitored(parts);
 		if (DEBUG) {
 			console.log('RESULT');
 			printArt(art);
 		}
-
-
 	}
-	console.log(rules.length)
+	// console.log(rules.length)
 	return art.reduce(
 		(aggr, curr) => aggr + curr.reduce((count, current) => count + (current === '#'), 0),
 		0,

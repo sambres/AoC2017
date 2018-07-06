@@ -29,8 +29,9 @@ class Generator {
     }
 
     computeLowestBits() {
-        let val = this.currentValue.toString(2);
-        return this.currentLowestBits = val.substring(val.length - 16, val.length);
+        return this.currentLowestBits = (this.currentValue & 0xFFFF);
+        // let val = this.currentValue.toString(2);
+        // return this.currentLowestBits = val.substring(val.length - 16, val.length);
     }
 
     getLowestBits() {
@@ -41,13 +42,32 @@ class Generator {
 const compute = (input) => {
     const generatorA = new Generator(input[0], 16807, 2147483647);
     const generatorB = new Generator(input[1], 48271, 2147483647);
+    const mask = 0xFFFF; // ou 0xFFFF
+    const regex = /Generator \w starts with (\d+)/;
 
+    let a = parseInt(input[0].match(regex)[1]);
+    let b = parseInt(input[1].match(regex)[1]);
     let count = 0;
     for (let i = 0; i < 1000 * 1000 * 40; i++) {
-        if (generatorA.computeNext() === generatorB.computeNext()) {
-            console.log("Success", generatorA.getLowestBits(), generatorB.getLowestBits());
+
+        /* Fast Solution */
+        a = (a * 16807) % 2147483647;
+        b = (b * 48271) % 2147483647;
+
+        if ((a & mask) === (b & mask)) {
+            console.log("Success", a & mask, b & mask);
+            count += 1;
+        }
+
+        /* Slow Solution
+        generatorA.computeNext();
+        generatorB.computeNext();
+
+        if (generatorA.computeLowestBits() === generatorB.computeLowestBits()) {
+            // console.log("Success", generatorA.getLowestBits(), generatorB.getLowestBits());
             count++;
         }
+        */
     }
     return count;
 }

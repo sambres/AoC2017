@@ -34,9 +34,11 @@ const compute = (input) => {
 
     return countPositiveBits(matrix);
 }
+let timeStart = process.hrtime();
 
 let input = 'oundnydw'
 
 console.log(compute(input));
-
+let timeEnd = process.hrtime(timeStart);
+console.info("Execution (hr): %ds %dms", timeEnd[0], timeEnd[1] / 1000000);
 // Solution 8106
