@@ -1,7 +1,7 @@
 const fs = require('fs');
 
 const DEBUG = false;
-fs.readFile('./puzzle_input/22.txt', 'utf8', (err, data) => {
+fs.readFile('./puzzle_input/22_test.txt', 'utf8', (err, data) => {
     let timeStart = process.hrtime();
     if (err) {
         throw err;
@@ -35,7 +35,7 @@ const printInfected = (infecteds, currentX, currentY) => {
         for (let j = min; j <= max; j++) {
             // if(currentX == j && currentY == i) row += '[';
             // else row += ' ';
-            row += getNode(infecteds, j, i) ? '#' : '.';
+            row += getNode(infecteds, j, i) || '.';
             // if(currentX == j && currentY == i) row += ']';
             // else row += ' ';
         }
@@ -51,7 +51,7 @@ const recordInfection = input => {
     for (let i = 0; i < input.length; i++) {
         for (let j = 0; j < input[i].length; j++) {
             if (input[i][j]) {
-                collection[(j - radius) + ':' + ((-i) + radius)] = true;
+                collection[(j - radius) + ':' + ((-i) + radius)] = '#';
             }
         }
     }
@@ -79,19 +79,31 @@ const compute = (input) => {
         dy = 0;
     let direction = 'N';
     let count = 0;
-    for (let i = 0; i < 1000; i++) {
-        printInfected(infecteds, x, y);
-        if (getNode(infecteds, x, y)) {
-            direction = directionsReverse[(directionsReverse.indexOf(direction) + 1) % 4];
-            delete infecteds[x + ':' + y];
-        } else {
-            direction = directionsReverse[mod(directionsReverse.indexOf(direction) - 1, 4)];
-            infecteds[x + ':' + y] = true;
-            count++;
+    for (let i = 0; i < 10000000; i++) {
+        // printInfected(infecteds, x, y);
+        // switch (getNode(infecteds, x, y)) {
+        switch (infecteds[x + ':' + y]) {
+            case 'W':
+                // Weakened
+                infecteds[x + ':' + y] = '#';
+                count++;
+                // console.log(count);
+                break;
+            case 'F':
+                direction = directionsReverse[mod(directionsReverse.indexOf(direction) - 2, 4)];
+                delete infecteds[x + ':' + y];
+                break;
+            case '#':
+                direction = directionsReverse[(directionsReverse.indexOf(direction) + 1) % 4];
+                infecteds[x + ':' + y] = 'F';
+                break;
+            default:
+                direction = directionsReverse[mod(directionsReverse.indexOf(direction) - 1, 4)];
+                infecteds[x + ':' + y] = 'W';
+                break;
+
         }
-        console.log(direction, directionsReverse.indexOf(direction),
-            (directionsReverse.indexOf(direction) + 1) % 4,
-            directions[mod(directionsReverse.indexOf(direction) + 1, 4)]);
+        // console.log(direction, x, y);
 
         switch (direction) {
             case 'N':
@@ -108,6 +120,7 @@ const compute = (input) => {
                 break;
         }
     }
+    // writeNodeFile(infecteds);
 
     return count;
 }
