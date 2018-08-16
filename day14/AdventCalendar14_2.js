@@ -1,4 +1,5 @@
 const knot = require("../day10/AdventCalendar10_2")
+const fs = require('fs');
 
 const getKnotHashBinary = (hash) => hash.split('').map(c => hexToBin(c)).join('');
 
@@ -7,7 +8,6 @@ const hexToBin = (input) => {
 }
 
 const printMatrix = (matrix) => {
-
 
     for (let i = 0; i < matrix.length; i++) {
         if (i > 8) break;
@@ -63,6 +63,25 @@ const findAdjacents = (matrix, x, y, regions, currentRegion) => {
     }
 }
 
+
+const printToFile = (matrix) => {
+    let content = '';
+    
+    for (let i = 0; i < matrix.length; i++) {
+        content += matrix[i].reduce((arr, current) => {
+            if (current === true)
+                return arr + '#';
+            if (current === false) {
+                return arr + '.';
+            }
+            return arr + current;
+        }, '');
+    }
+    fs.writeFile('day14/result.txt', content, 'utf8', err => {});
+
+}
+
+
 const compute = (input) => {
     let matrix = buildDiskMatrix(input);
     let regions = [];
@@ -73,11 +92,11 @@ const compute = (input) => {
             if (matrix[i][j] === true) {
                 findAdjacents(matrix, i, j, regions, regions.length + 1);
 
-                printMatrix(matrix);
+                // printMatrix(matrix);
             }
         }
     }
-    // printMatrix(matrix);
+    printToFile(matrix);
 
     return regions.length;
 }

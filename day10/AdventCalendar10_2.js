@@ -68,7 +68,7 @@ const densifyList2 = (list) => {
 
 exports.getKnotHash = (input) => {
     let lengthList = input.split('').map(v => v.charCodeAt()).concat([17, 31, 73, 47, 23]);
-    let numbers = inputList;
+    let numbers = range(256);
     let pos = 0,
         skip = 0,
         start = 0;

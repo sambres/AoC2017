@@ -58,7 +58,23 @@ const recordInfection = input => {
     return collection;
 }
 
-const getNode = (collection, x, y) => collection[x + ':' + y]
+
+const recordInfectionMap = input => {
+    const collection = new Map();
+    const radius = (input.length - 1) / 2;
+    for (let i = 0; i < input.length; i++) {
+        for (let j = 0; j < input[i].length; j++) {
+            if (input[i][j]) {
+                // collection.set([(j - radius), ((-i) + radius)], '#');
+                collection.set((j - radius) + ':' + ((-i) + radius), '#');
+                // collection[(j - radius) + ':' + ((-i) + radius)] = '#';
+            }
+        }
+    }
+    return collection;
+}
+
+const getNode = (collection, x, y) => collection.get(x + ':' + y)
 
 const directions = {
     'N': 0,
@@ -69,29 +85,61 @@ const directions = {
 
 const directionsReverse = ['N', 'W', 'S', 'E']
 
+
+const writeNodeFile = (infecteds) => {
+    let content = '';
+    let max = 0,
+        min = 0;
+
+    // Object.keys(infecteds).forEach(key => {
+    infecteds.forEach((v, key) => {
+        let [total, x, y] = key.match(/(-?\d+):(-?\d+)/);
+        x = parseInt(x);
+        y = parseInt(y);
+        min = x < min ? x : min;
+        min = y < min ? y : min;
+        max = x > max ? x : max;
+        max = y > max ? y : max;
+    })
+
+    for (let i = max; i >= min; i--) {
+        let row = '';
+        for (let j = min; j <= max; j++) {
+            // if(currentX == j && currentY == i) row += '[';
+            // else row += ' ';
+            row += getNode(infecteds, j, i) ? '#' : '.';
+            // if(currentX == j && currentY == i) row += ']';
+            // else row += ' ';
+        }
+        content += row + '\n';
+    }
+    fs.writeFile('result.txt', content, 'utf8', (err) => {});
+}
+
+
 const mod = (i, n) => ((i % n) + n) % n
 
 const compute = (input) => {
-    let infecteds = recordInfection(input);
+    let infecteds = recordInfectionMap(input);
     let x = 0,
         y = 0;
     let dx = 1,
         dy = 0;
     let direction = 'N';
     let count = 0;
-    for (let i = 0; i < 1000; i++) {
-        printInfected(infecteds, x, y);
+    for (let i = 0; i < 100000; i++) {
+        // printInfected(infecteds, x, y);
         if (getNode(infecteds, x, y)) {
             direction = directionsReverse[(directionsReverse.indexOf(direction) + 1) % 4];
-            delete infecteds[x + ':' + y];
+            infecteds.delete(x + ':' + y);
         } else {
             direction = directionsReverse[mod(directionsReverse.indexOf(direction) - 1, 4)];
-            infecteds[x + ':' + y] = true;
+            infecteds.set(x + ':' + y, true);
             count++;
         }
-        console.log(direction, directionsReverse.indexOf(direction),
-            (directionsReverse.indexOf(direction) + 1) % 4,
-            directions[mod(directionsReverse.indexOf(direction) + 1, 4)]);
+        // console.log(direction, directionsReverse.indexOf(direction),
+        //     (directionsReverse.indexOf(direction) + 1) % 4,
+        //     directions[mod(directionsReverse.indexOf(direction) + 1, 4)]);
 
         switch (direction) {
             case 'N':
@@ -108,6 +156,9 @@ const compute = (input) => {
                 break;
         }
     }
+
+    writeNodeFile(infecteds);
+
 
     return count;
 }

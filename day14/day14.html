@@ -1,0 +1,221 @@
+<html>
+
+    <head>
+        <title>Advent of Code - Day 14</title>
+       
+        <script>
+            const range = length => new Array(length).fill().map((v, i) => i);
+            const reverse = arr => arr.map((v, i) => arr[arr.length - i - 1]);
+
+            let inputList = range(256);
+
+            const computeLoopItem = (length, start, localList, listLength) => {
+                let tempList = [];
+                let startIndex = start;
+                let isOverflow = startIndex + length > listLength;
+                let endIndex = isOverflow ? startIndex + length -
+                    listLength - 1 : startIndex + length - 1;
+
+                return localList.map((value, index, arr) => {
+                    if (
+                        (isOverflow && (index >= startIndex ||
+                            index <= endIndex)) ||
+                        (!isOverflow && (index >= startIndex &&
+                            index <= endIndex))
+                    ) {
+                        let virtualIndex = (index - start +
+                            listLength) % listLength;
+                        let virtualReverseIndex = length -
+                            virtualIndex - 1;
+                        let reverseIndex = (virtualReverseIndex +
+                            start) % listLength;
+                        return arr[reverseIndex];
+                    } else {
+                        return value;
+                    }
+                });
+            };
+
+            const computeLoop = (lengthList, list) => {
+                const listLength = list.length;
+                let start = 0;
+                let skip = 0;
+                let localList = list;
+                for (const length of lengthList) {
+                    localList = computeLoopItem(length, start, localList,
+                        listLength);
+                    start = (start + skip + length) % listLength;
+                    skip++;
+                }
+                return localList;
+            };
+
+            const densifyList = (list) => {
+                const result = [];
+                for (let index = 0; index < 16; index++) {
+                    const subList = list.slice(index * 16, (index + 1) * 16);
+                    const hash = subList.reduce((a, b) => a ^ b);
+                    result.push(hash);
+                }
+                return result;
+            }
+            const getKnotHash = (input) => {
+                let lengthList = input.split('').map(v => v.charCodeAt()).concat(
+                    [17, 31, 73, 47, 23]);
+                let numbers = range(256);
+                let pos = 0,
+                    skip = 0,
+                    start = 0;
+                for (let index = 0; index < 64; index++) {
+                    const listLength = numbers.length;
+
+                    for (const length of lengthList) {
+                        numbers = computeLoopItem(length, start, numbers,
+                            listLength);
+                        start = (start + skip + length) % listLength;
+                        skip++;
+                    }
+
+                }
+                let denseList = densifyList(numbers);
+
+                return getHexaHashOfArray(denseList);
+            };
+
+            const getHexa = n => n.toString(16).padStart(2, '0');
+
+            const getHexaHashOfArray = arr => arr.map(v => getHexa(v)).join('');
+        </script>
+        <script type="text/javascript">
+            const getKnotHashBinary = (hash) => hash.split('').map(c =>
+                hexToBin(c)).join('');
+
+            const hexToBin = (input) => {
+                return ("0000" + (parseInt(input, 16)).toString(2)).substr(-
+                    4);
+            }
+
+            const countPositiveBits = (matrix) => matrix.reduce((agg, row) =>
+                agg + row.reduce((rowSum, item) => rowSum + item, 0), 0);
+
+            const buildDiskMatrix = (input) => {
+                let length = 128;
+                let matrix = [];
+                for (let i = 0; i < length; i++) {
+                    let rowInput = input + '-' + i;
+                    let hash = getKnotHash(rowInput);
+                    let row = getKnotHashBinary(hash);
+
+                    matrix.push(row.split('').map(c => c === '1'));
+                }
+                return matrix;
+            }
+
+            const findAdjacents = (matrix, x, y, regions, currentRegion) => {
+                if (!regions[currentRegion - 1]) {
+                    regions[currentRegion - 1] = []
+                }
+                regions[currentRegion - 1].push({
+                    x,
+                    y
+                });
+                matrix[x][y] = currentRegion;
+
+                if (matrix[x + 1] && matrix[x + 1][y] === true) {
+                    findAdjacents(matrix, x + 1, y, regions, currentRegion);
+                }
+                if (matrix[x - 1] && matrix[x - 1][y] === true) {
+                    findAdjacents(matrix, x - 1, y, regions, currentRegion);
+                }
+
+                if (matrix[x][y + 1] === true) {
+                    findAdjacents(matrix, x, y + 1, regions, currentRegion);
+                }
+                if (matrix[x][y - 1] === true) {
+                    findAdjacents(matrix, x, y - 1, regions, currentRegion);
+                }
+            }
+
+
+            const compute = (input) => {
+                let matrix = buildDiskMatrix(input);
+                let regions = [];
+
+                for (let i = 0; i < matrix.length; i++) {
+                    for (let j = 0; j < matrix[i].length; j++) {
+                        if (matrix[i][j] === true) {
+                            findAdjacents(matrix, i, j, regions,
+                                regions.length +
+                                1);
+                        }
+                    }
+                }
+                return {
+                    regions,
+                    matrix
+                };
+            }
+
+            const getRandomColor = () => {
+                const letters = '0123456789ABCDEF';
+                let color = '#';
+                for (var i = 0; i < 6; i++) {
+                    color += letters[Math.floor(Math.random() * 16)];
+                }
+                return color;
+            }
+
+            function printMatrixInCanvas(matrix) {
+                var canvas = document.getElementById('canvas');
+                var ctx = canvas.getContext('2d');
+                let colors = {
+                    false: '#fff'
+                }
+
+                for (let i = 0; i < matrix.length; i++) {
+                    for (let j = 0; j < matrix[i].length; j++) {
+                        let value = matrix[i][j];
+                        let color = colors[value] ? colors[value] :
+                            colors[value] = getRandomColor();
+                        ctx.fillStyle = color;
+                        ctx.fillRect(j * 10, (i * 10), 10, 10);
+                    }
+
+                }
+            }
+
+            function load() {
+                let input = document.getElementById('input');
+
+                let {
+                    matrix,
+                    regions
+                } = compute(input);
+                let out = document.getElementById('main');
+                out.innerHTML =
+                    `<div id="solution-panel">
+                        <p><span>Solution:  </span><span id="output">${regions.length}</span></p>
+                    </div>
+                    <canvas id="canvas" width="1280" height="1280"></canvas>`
+
+                printMatrixInCanvas(matrix);
+
+            }
+        </script>
+    </head>
+
+    <body>
+        <div id="main">
+            <p>Paste your input here:</p>
+            <input type="text" value="oundnydw" id="input" />
+            <br>
+            <button type="button" onclick="load()">Load!</button>
+        </div>
+        <div class="content">
+        </div>
+    </body>
+    <script>
+    load()
+    </script>
+
+</html>
